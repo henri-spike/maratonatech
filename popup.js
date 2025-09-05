@@ -3,8 +3,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const wordsSection = document.getElementById('wordsSection');
   const passwordInput = document.getElementById('passwordInput');
   const loginButton = document.getElementById('loginButton');
+  
   const wordList = document.getElementById('wordList');
-  const saveButton = document.getElementById('saveButton');
+  const saveWordsButton = document.getElementById('saveWordsButton');
+  
+  const siteList = document.getElementById('siteList');
+  const saveSitesButton = document.getElementById('saveSitesButton');
 
   const correctPassword = 'nestor2a';
 
@@ -12,32 +16,47 @@ document.addEventListener('DOMContentLoaded', () => {
     if (passwordInput.value === correctPassword) {
       loginSection.style.display = 'none';
       wordsSection.style.display = 'block';
-      loadWords();
+      loadData();
     } else {
       alert('Senha incorreta!');
     }
   });
 
-  function loadWords() {
-    // Carrega as palavras salvas
-    chrome.storage.sync.get(['blockedWords'], (result) => {
+  function loadData() {
+    // Carrega as palavras e sites salvos
+    chrome.storage.sync.get(['blockedWords', 'blockedSites'], (result) => {
       if (result.blockedWords) {
         wordList.value = result.blockedWords.join(', ');
+      }
+      if (result.blockedSites) {
+        siteList.value = result.blockedSites.join(', ');
       }
     });
   }
 
   // Salva as novas palavras
-  saveButton.addEventListener('click', () => {
+  saveWordsButton.addEventListener('click', () => {
     const words = wordList.value.split(',').map(word => word.trim()).filter(word => word.length > 0);
     chrome.storage.sync.set({ blockedWords: words }, () => {
       alert('Palavras salvas!');
-      // Recarrega a aba ativa para aplicar as novas palavras
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        if (tabs[0] && tabs[0].id) {
-          chrome.tabs.reload(tabs[0].id);
-        }
-      });
+      reloadActiveTab();
     });
   });
+
+  // Salva os novos sites
+  saveSitesButton.addEventListener('click', () => {
+    const sites = siteList.value.split(',').map(site => site.trim()).filter(site => site.length > 0);
+    chrome.storage.sync.set({ blockedSites: sites }, () => {
+      alert('Sites salvos!');
+      reloadActiveTab();
+    });
+  });
+
+  function reloadActiveTab() {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0] && tabs[0].id) {
+        chrome.tabs.reload(tabs[0].id);
+      }
+    });
+  }
 });
