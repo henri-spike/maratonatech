@@ -5,7 +5,8 @@
   "description": "Bloqueia palavras indevidas em páginas da web.",
   "permissions": [
     "activeTab",
-    "scripting"
+    "scripting",
+    "storage"
   ],
   "content_scripts": [
     {
